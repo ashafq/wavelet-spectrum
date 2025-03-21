@@ -25,8 +25,14 @@
 
 #define NUM_BINS (10)
 #define BLOCK_SIZE (1 << NUM_BINS)
+
 static float spectrumData[NUM_BINS] = {0};
 static float spectrumSlow[NUM_BINS] = {0};
+
+#define DB_MIN -128.0F
+#define DB_MAX 0.0F
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 450
 
 void DrawSpectrum(const float *spectrumData, size_t numBins);
 void ComputeSpectrum(const float *data, size_t len);
@@ -35,10 +41,7 @@ void AudioProcessor(void *buffer, unsigned int frames);
 float ScaleDbToPlot(float dbValue);
 
 int main(void) {
-  const int screenWidth = 800;
-  const int screenHeight = 450;
-
-  InitWindow(screenWidth, screenHeight, "Wavelet Spectrum Analyzer");
+  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Wavelet Spectrum Analyzer");
 
   InitAudioDevice();
 
@@ -46,6 +49,12 @@ int main(void) {
   float timePlayed = 0.0f;
   bool pause = false;
   bool fileLoaded = false;
+
+  // Need to initialize specrum at small value in decibel
+  for (size_t bin = 0; bin < NUM_BINS; ++bin) {
+    spectrumData[bin] = DB_MIN - 5;
+    spectrumData[bin] = DB_MIN - 5;
+  }
 
   while (!WindowShouldClose()) {
 
@@ -166,7 +175,7 @@ void ComputeSpectrum(const float *data, size_t len) {
     float outSlow = LowPass1(newValue, 0.01F, stateSlow);
 
     spectrumData[bin] = out;
-    spectrumSlow[bin] = outSlow;
+    spectrumSlow[bin] = fmaxf(outSlow, out);
   }
 }
 
@@ -190,9 +199,6 @@ void AudioProcessor(void *buffer, unsigned int frames) {
   ComputeSpectrum(monoData, BLOCK_SIZE);
 }
 
-#define DB_MIN -80.0F
-#define DB_MAX 0.0F
-#define SCREEN_HEIGHT 400
 
 static float ClampFloat(float value, float minVal, float maxVal) {
   return fminf(maxVal, fmaxf(minVal, value));
