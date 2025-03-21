@@ -3,6 +3,7 @@
 This is a work in progress demo. Do not use it for production! You have been
 warned.
 
+![Screenshot](screenshot/001.png)
 
 ## License
 
